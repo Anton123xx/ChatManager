@@ -1,0 +1,45 @@
+﻿
+@model IEnumerable<ChatManager.Models.User>
+@{
+
+    if (Session["IdSelected"] == null)
+    {
+        Session["IdSelected"] = 0;
+    }
+
+    //ChatManager.Models.FriendshipRepository friendships = ChatManager.Models.DB.Friendships;
+    //ChatManager.Models.User currentUser = ChatManager.Models.OnlineUsers.GetSessionUser();
+
+
+
+
+    //ChatManager.Models.DB.Users.ToList()
+}
+
+
+@foreach (var item in Model)
+{
+  
+
+    //if (friendships.isFriend(currentUser.Id, item.Id) != null || friendships.isFriend(item.Id, currentUser.Id) != null)
+    //{
+
+        if (item.Id == (int)Session["IdSelected"])
+        {
+            <div class="selectedTarget" userid="@item.Id" title="@item.GetFullName()">
+                @Helper.Image(item.GetAvatarURL(), "UserSmallAvatar")
+            </div>
+        }
+        else
+        {
+            <div class="unselectedTarget" userid="@item.Id" title="item.GetFullName()">
+                @Helper.Image(item.GetAvatarURL(), "UserSmallAvatar")
+            </div>
+        }
+   // }
+
+
+
+
+
+}

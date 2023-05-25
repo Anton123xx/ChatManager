@@ -1,0 +1,506 @@
+﻿
+
+@*<div class="main">
+
+    @{ ChatManager.Models.User currentUser = ChatManager.Models.OnlineUsers.GetSessionUser(); }
+
+    @{ List<ChatManager.Models.User> users = new List<ChatManager.Models.User>();
+
+        if (ViewBag.list == null)
+
+        {
+
+            users = ChatManager.Models.DB.Users.ToList();
+
+        }
+
+        //if (!ViewBag.FilterNotFriend)
+
+        //{
+
+        //    ChatManager.Models.FriendshipRepository friendships = ChatManager.Models.DB.Friendships;
+
+        //    foreach (var item in ChatManager.Models.DB.Users.ToList())
+
+        //    {
+
+        //        if (friendships.isFriend(currentUser.Id, item.Id) != null)
+
+        //        {
+
+        //            users.Add(item);
+
+        //        }
+
+        //    }
+
+        //}
+
+    }
+
+
+
+    @if (ChatManager.Models.OnlineUsers.GetSessionUser() != null)
+
+    {
+
+        foreach (var item in users)
+
+        {
+
+            if (item != currentUser)
+
+            {
+
+                <div class="friendContainer">
+
+                    <a href="mailto:@item.Email">@Helper.AvatarUser(item)</a>
+
+                    @Helper.OnLineStatusIcon(ChatManager.Models.OnlineUsers.IsOnLine(item.Id), item.Blocked)
+
+
+
+                    @if (item.Blocked)
+
+                    {
+
+                        <a class="command icon fa red fa-ban" title="@item.GetFullName() a été bloqué par un administrateur"></a> }
+
+                    else if (ChatManager.Models.DB.Friendships.isFriend(currentUser.Id, item.Id) != null || ChatManager.Models.DB.Friendships.isFriend(item.Id, ChatManager.Models.OnlineUsers.GetSessionUser().Id) != null)
+
+                    {
+
+                        //si vous etes Ami
+
+                        <a class="command icon fa green fa-check-circle" title="Vous etes ami avec @item.GetFullName()"></a>
+
+                        <span class="command icon fa red fa-check fa-times" url="/Friendships/RetirerFriendShipRequest?friendId=@item.Id" message="Voulez vous retirer @item.GetFullName() de vos amis" title="Retirer @item.GetFullName() de vos amis"></span> }
+
+                    else if (ChatManager.Models.DB.Friendships.FriendRequestWaiting(currentUser.Id, item.Id) != null)
+
+                    {
+
+                        //si tu as envoyé une demande et tu es en attentes
+
+                        <a class="command icon fa green fa-clock-o fa-times" title="En attente d'une reponse de @item.GetFullName()"></a> }
+
+                    else if (ChatManager.Models.DB.Friendships.FriendRequestWaiting(item.Id, currentUser.Id) != null)
+
+                    {
+
+                        //si on t'as envoyé une demande et elle est en attente
+
+                        <span class="command icon fa green fa-check" url="/Friendships/AcceptFriendRequest?friendId=@item.Id" message="Accepter la demande d'ami de @item.GetFullName()" title="Accepter la demande d'ami de @item.GetFullName()"></span>
+
+                        <span class="command icon fa red fa-check fa-times" url="/Friendships/RefuseFriendshipRequest?friendId=@item.Id" message="Refuser la demande d'ami de @item.GetFullName()" title="Refuser la demande d'ami de @item.GetFullName()"></span> }
+
+                    else if (ChatManager.Models.DB.Friendships.FriendRequestDenied(currentUser.Id, item.Id) != null)
+
+                    {
+
+                        //si tu as envoyé une demande et elle a ete refusé
+
+                        <span class="icon fa red fa-times-circle" title="Votre demande d'ami a été rejeté par @item.GetFullName()"></span> }
+
+                    else if (ChatManager.Models.DB.Friendships.FriendRequestDenied(item.Id, currentUser.Id) != null)
+
+                    {
+
+                        //si on t'as envoyé une demande et tu l'as refusé
+
+                        <span class="icon fa red fa-times-circle" title="Vous avez rejeté la demande d'ami de @item.GetFullName()"></span>
+
+                        <span class="command icon fa green fa-plus-circle" url="/Friendships/SendFriendshipRequest?friendId=@item.Id" message="Envoyer une demande d'amitié à @item.GetFullName()" title="Envoyer une demande d'amitié à @item.GetFullName()"></span> }
+
+                    else
+
+                    {
+
+                        <span class="command icon fa green fa-plus-circle" url="/Friendships/SendFriendshipRequest?friendId=@item.Id" message="Envoyer une demande d'amitié à @item.GetFullName()" title="Envoyer une demande d'amitié à @item.GetFullName()"></span>}
+
+                </div>}
+
+        }
+
+    }
+
+</div>*@
+
+
+
+
+@model ChatManager.Models.DB
+
+<div class="main">
+
+    @{ ChatManager.Models.User currentUser = ChatManager.Models.OnlineUsers.GetSessionUser();
+
+        ChatManager.Models.FriendshipRepository friendships = ChatManager.Models.DB.Friendships;}
+
+    @{ List<ChatManager.Models.User> users = new List<ChatManager.Models.User>();
+
+
+
+
+
+        List<ChatManager.Models.User> userPeuxAdd = new List<ChatManager.Models.User>();
+
+        List<ChatManager.Models.User> userEnAttente = new List<ChatManager.Models.User>();
+
+        List<ChatManager.Models.User> userDemandeEnAttente = new List<ChatManager.Models.User>();
+
+        List<ChatManager.Models.User> userAmi = new List<ChatManager.Models.User>();
+
+        List<ChatManager.Models.User> userDenied = new List<ChatManager.Models.User>();
+
+        List<ChatManager.Models.User> userBlock = new List<ChatManager.Models.User>();
+
+
+
+        List<ChatManager.Models.User> userMatch = new List<ChatManager.Models.User>();
+
+
+
+
+
+        if (currentUser != null)
+
+        {
+
+            foreach (var item in ChatManager.Models.DB.Users.ToList())
+
+            {
+
+
+
+                if (ViewBag.SearchValue != null)
+
+                {
+
+                    if (item.GetFullName().Contains(ViewBag.SearchValue))
+
+                    {
+
+                        userMatch.Add(item);
+
+                    }
+
+                }
+
+
+
+                if (item.Blocked)
+
+                {
+
+                    userBlock.Add(item);
+
+                }
+
+                else if (ChatManager.Models.DB.Friendships.isFriend(currentUser.Id, item.Id) != null || ChatManager.Models.DB.Friendships.isFriend(item.Id, ChatManager.Models.OnlineUsers.GetSessionUser().Id) != null)
+
+                {
+
+                    //si vous etes Ami
+
+                    userAmi.Add(item);
+
+                }
+
+                else if (ChatManager.Models.DB.Friendships.FriendRequestWaiting(currentUser.Id, item.Id) != null)
+
+                {
+
+                    //si tu as envoyé une demande et tu es en attentes
+
+                    userDemandeEnAttente.Add(item);
+
+                }
+
+                else if (ChatManager.Models.DB.Friendships.FriendRequestWaiting(item.Id, currentUser.Id) != null)
+
+                {
+
+                    //si on t'as envoyé une demande et elle est en attente
+
+                    userEnAttente.Add(item);
+
+                }
+
+                else if (ChatManager.Models.DB.Friendships.FriendRequestDenied(currentUser.Id, item.Id) != null)
+
+                {
+
+                    //si tu as envoyé une demande et elle a ete refusé
+
+                    userDenied.Add(item);
+
+                }
+
+                else if (ChatManager.Models.DB.Friendships.FriendRequestDenied(item.Id, currentUser.Id) != null)
+
+                {
+
+                    //si on t'as envoyé une demande et tu l'as refusé
+
+                    userDenied.Add(item);
+
+                }
+
+                else
+
+                {
+
+                    userPeuxAdd.Add(item);
+
+                }
+
+            }
+        }
+
+
+
+
+
+        if (ViewBag.SearchValue != null)
+
+        {
+
+            if (ViewBag.FilterNotFriend)
+
+            {
+
+                checkIfMatch(userPeuxAdd);
+
+            }
+
+
+
+            if (ViewBag.FilterRequest)
+
+            {
+
+                checkIfMatch(userEnAttente);
+
+            }
+
+
+
+            if (ViewBag.FilterPending)
+
+            {
+
+                checkIfMatch(userDemandeEnAttente);
+
+            }
+
+            if (ViewBag.FilterFriend)
+
+            {
+
+                checkIfMatch(userAmi);
+
+            }
+
+            if (ViewBag.FilterRefused)
+
+            {
+
+                checkIfMatch(userDenied);
+
+            }
+
+            if (ViewBag.FilterBlocked)
+
+            {
+
+                checkIfMatch(userBlock);
+
+            }
+
+        }
+
+        else
+
+        {
+
+            if (ViewBag.FilterNotFriend)
+
+            {
+
+                users.AddRange(userPeuxAdd);
+
+            }
+
+
+
+            if (ViewBag.FilterRequest)
+
+            {
+
+                users.AddRange(userEnAttente);
+
+            }
+
+
+
+            if (ViewBag.FilterPending)
+
+            {
+
+                users.AddRange(userDemandeEnAttente);
+
+            }
+
+            if (ViewBag.FilterFriend)
+
+            {
+
+                users.AddRange(userAmi);
+
+            }
+
+            if (ViewBag.FilterRefused)
+
+            {
+
+                users.AddRange(userDenied);
+
+            }
+
+            if (ViewBag.FilterBlocked)
+
+            {
+
+                users.AddRange(userBlock);
+
+            }
+
+        }
+
+
+
+
+
+
+
+
+
+    }
+
+
+
+    @if (ChatManager.Models.OnlineUsers.GetSessionUser() != null)
+
+    {
+
+        foreach (var item in users)
+
+        {
+
+            if (item != currentUser)
+
+            {
+
+                <div class="friendContainer">
+
+                    <a href="mailto:@item.Email">@Helper.AvatarUser(item)</a>
+
+                    @Helper.OnLineStatusIcon(ChatManager.Models.OnlineUsers.IsOnLine(item.Id), item.Blocked)
+
+
+
+                    @if (item.Blocked)
+
+                    {
+
+                        <a class="command icon fa red fa-ban" title="@item.GetFullName() a été bloqué par un administrateur"></a> }
+
+                    else if (ChatManager.Models.DB.Friendships.isFriend(currentUser.Id, item.Id) != null || ChatManager.Models.DB.Friendships.isFriend(item.Id, ChatManager.Models.OnlineUsers.GetSessionUser().Id) != null)
+
+                    {
+
+                        //si vous etes Ami
+
+                        <a class="command icon fa green fa-check-circle" title="Vous etes ami avec @item.GetFullName()"></a>
+
+                        <span class="command icon fa red fa-check fa-times" url="/Friendships/RetirerFriendRequest?friendId=@item.Id" message="Voulez vous retirer @item.GetFullName() de vos amis" title="Retirer @item.GetFullName() de vos amis"></span> }
+
+                    else if (ChatManager.Models.DB.Friendships.FriendRequestWaiting(currentUser.Id, item.Id) != null)
+
+                    {
+
+                        //si tu as envoyé une demande et tu es en attentes
+
+                        <a class="command icon fa green fa-clock-o fa-times" title="En attente d'une reponse de @item.GetFullName()"></a> }
+
+                    else if (ChatManager.Models.DB.Friendships.FriendRequestWaiting(item.Id, currentUser.Id) != null)
+
+                    {
+
+                        //si on t'as envoyé une demande et elle est en attente
+
+                        <span class="command icon fa green fa-check" url="/Friendships/AcceptFriendRequest?friendId=@item.Id" message="Accepter la demande d'ami de @item.GetFullName()" title="Accepter la demande d'ami de @item.GetFullName()"></span>
+
+                        <span class="command icon fa red fa-check fa-times" url="/Friendships/RefuseFriendRequest?friendId=@item.Id" message="Refuser la demande d'ami de @item.GetFullName()" title="Refuser la demande d'ami de @item.GetFullName()"></span> }
+
+                    else if (ChatManager.Models.DB.Friendships.FriendRequestDenied(currentUser.Id, item.Id) != null)
+
+                    {
+
+                        //si tu as envoyé une demande et elle a ete refusé
+
+                        <span class="icon fa red fa-times-circle" title="Votre demande d'ami a été rejeté par @item.GetFullName()"></span> }
+
+                    else if (ChatManager.Models.DB.Friendships.FriendRequestDenied(item.Id, currentUser.Id) != null)
+
+                    {
+
+                        //si on t'as envoyé une demande et tu l'as refusé
+
+                        <span class="icon fa red fa-times-circle" title="Vous avez rejeté la demande d'ami de @item.GetFullName()"></span>
+
+                        <span class="command icon fa green fa-plus-circle" url="/Friendships/SendFriendRequest?friendId=@item.Id" message="Envoyer une demande d'amitié à @item.GetFullName()" title="Envoyer une demande d'amitié à @item.GetFullName()"></span> }
+
+                    else
+
+                    {
+
+                        <span class="command icon fa green fa-plus-circle" url="/Friendships/SendFriendRequest?friendId=@item.Id" message="Envoyer une demande d'amitié à @item.GetFullName()" title="Envoyer une demande d'amitié à @item.GetFullName()"></span>}
+
+                </div>}
+
+        }
+
+    }
+
+</div>
+
+
+
+
+
+@{
+
+    void checkIfMatch(List<ChatManager.Models.User> listACheck)
+
+    {
+
+        foreach (var item in listACheck)
+
+        {
+
+            if (userMatch.Contains(item))
+
+            {
+
+                users.Add(item);
+
+            }
+
+        }
+
+    }
+
+}
+

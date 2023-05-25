@@ -1,0 +1,50 @@
+﻿
+<div class="main">
+
+    @{
+
+        ViewBag.Title = "Liste ami";
+
+        ChatManager.Models.User currentUser = ChatManager.Models.OnlineUsers.GetSessionUser();
+
+        ChatManager.Models.FriendshipRepository friendships = ChatManager.Models.DB.Friendships;
+
+        if (ViewBag.SetFilterNotFriend == "false")
+
+        {
+
+            List<ChatManager.Models.User> users = new List<ChatManager.Models.User>();
+
+            foreach (var item in ChatManager.Models.DB.Users.ToList())
+
+            {
+
+                if (friendships.isFriend(currentUser.Id, item.Id) != null)
+
+                {
+
+                    users.Add(item);
+
+                }
+
+            }
+
+
+
+            ViewBag.list = users;
+
+        }
+
+        else
+
+        {
+
+            ViewBag.list = ChatManager.Models.DB.Users.ToList();
+
+        }
+
+
+
+    }
+
+</div> 

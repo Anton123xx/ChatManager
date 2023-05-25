@@ -1,0 +1,109 @@
+﻿@model ChatManager.Models.User
+
+@{
+    ViewBag.Title = "AdminModifierProfil";
+}
+
+<h2>Modifier le Profil</h2>
+
+
+@{
+    ViewBag.Title = "Profil";
+    //bool subscribing = Model.Id == 0;
+    //string pageTitle = subscribing ? "Inscription" : "Profil";
+    //string formSubmitCaption = subscribing ? "S'inscrire" : "Enregistrer";
+    string bloquer = "";
+    string verifier = "";
+
+    if (Model.Blocked)
+    {
+
+        bloquer = "checked";
+    }
+
+
+    if (Model.Verified)
+    {
+        verifier = "checked";
+    }
+}
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.Password)
+    @Html.HiddenFor(m => m.ConfirmPassword)
+    @Html.HiddenFor(m => m.CreationDate)
+    @Html.HiddenFor(m => m.Gender)
+    @Html.HiddenFor(m => m.GenderId)
+    @Html.HiddenFor(m => m.CRUD_Access)
+    @Html.HiddenFor(m => m.IsPowerUser)
+    @Html.HiddenFor(m => m.AcceptNotification)
+    @Html.HiddenFor(m => m.IsAdmin)
+
+
+
+    <div class="form-horizontal">
+
+        <fieldset class="formField">
+            <div class="legend">Identification</div>
+            @Html.EditorFor(model => model.FirstName, new { htmlAttributes = new { @class = "form-control", placeholder = @Html.DisplayNameFor(model => model.FirstName) } })
+            @Html.ValidationMessageFor(model => model.FirstName, "", new { @class = "text-danger" })
+            <br />
+            @Html.EditorFor(model => model.LastName, new { htmlAttributes = new { @class = "form-control", placeholder = @Html.DisplayNameFor(model => model.LastName) } })
+            @Html.ValidationMessageFor(model => model.LastName, "", new { @class = "text-danger" })
+        </fieldset>
+
+
+
+
+
+        @*<fieldset class="formField">
+                <div class="legend">@Html.DisplayNameFor(model => model.GenderId)</div>
+                @Helper.ListToRadioButtonGroup("GenderId", (SelectList)ViewBag.Genders, Model.GenderId)
+                @Html.ValidationMessageFor(model => model.GenderId, "", new { @class = "text-danger" })
+            </fieldset>*@
+
+
+        <fieldset class="formField">
+            <div class="legend">@Html.DisplayNameFor(model => model.Email)</div>
+            @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", placeholder = @Html.DisplayNameFor(model => model.Email) } })
+            @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+            <br />
+            @Html.EditorFor(model => model.ConfirmEmail, new { htmlAttributes = new { @class = "form-control", placeholder = @Html.DisplayNameFor(model => model.ConfirmEmail) } })
+            @Html.ValidationMessageFor(model => model.ConfirmEmail, "", new { @class = "text-danger" })
+        </fieldset>
+
+
+        <fieldset class="formField">
+            <div class="legend">@Html.DisplayNameFor(model => model.UserTypeId)</div>
+            @Helper.ListToRadioButtonGroup("UserTypeId", (SelectList)ViewBag.UserType, Model.UserTypeId)
+            @Html.ValidationMessageFor(model => model.UserTypeId, "", new { @class = "text-danger" })
+        </fieldset>
+
+
+        <fieldset class="formField">
+            <label for="verifie">Vérifier</label>
+            <input type="checkbox" name="verifie" id="1" value="Vérifié" @verifier />
+
+            <label for="bloque">Bloqué</label>
+            <input type="checkbox" name="bloque" id="2" value="Bloqué" @bloquer />
+
+        </fieldset>
+
+        <fieldset class="formField">
+            <div class="legend" style="width:150px; height:150px">@Html.DisplayNameFor(model => model.AvatarImageData)</div>
+            @Helper.ImageUploader(Model.Id, "AvatarImageData", Model.GetAvatarURL(), "~/Images_Data/Loading_icon.gif", "Cliquez pour choisir votre avatar")
+            @Html.ValidationMessageFor(model => model.AvatarImageData, "", new { @class = "text-danger" })
+
+        </fieldset>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Enregistrer" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
